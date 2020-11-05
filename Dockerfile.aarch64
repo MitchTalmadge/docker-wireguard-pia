@@ -1,5 +1,8 @@
 FROM arm64v8/alpine
 
+# Needed for Docker Hub automated builds
+COPY qemu-aarch64-static /usr/bin/
+
 RUN apk add --no-cache \
     bash \
     ca-certificates \
