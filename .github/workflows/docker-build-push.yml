@@ -3,7 +3,7 @@ name: ci
 on:
   push:
     branches:
-      - 'master'
+      - 'testing'
   # Rebuild monthly to keep packages up to date
   schedule:
     - cron: '0 0 1 * *'
@@ -31,7 +31,7 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm,linux/arm64
           push: true
-          tags: thrnz/docker-wireguard-pia:latest
+          tags: thrnz/docker-wireguard-pia:testing
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
