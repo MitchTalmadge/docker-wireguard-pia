@@ -36,7 +36,7 @@ sharedir="/pia-shared"
 portfile="${PORT_FILE:-$sharedir/port.dat}"
 
 pia_cacrt="/rsa_4096.crt"
-wg_conf="/etc/wireguard/wg0.conf"
+wg_conf="/etc/wireguard/wg1.conf"
 
 firewall_init () {
   # Block everything by default
@@ -66,9 +66,9 @@ finish () {
   # Remove forwarded port number dump file if requested
   [ $PORT_FILE_CLEANUP -eq 1 ] && [ -w "$portfile" ] && rm "$portfile"
   if [ $WG_USERSPACE -eq 1 ]; then
-    WG_QUICK_USERSPACE_IMPLEMENTATION=wireguard-go wg-quick down wg0
+    WG_QUICK_USERSPACE_IMPLEMENTATION=wireguard-go wg-quick down wg1
   else
-    wg-quick down wg0
+    wg-quick down wg1
   fi
   [ -x "$post_down" ] && run_script "$post_down"
   exit 0
@@ -123,7 +123,7 @@ fi
 
 [ ! -r "$tokenfile" ] && get_auth_token
 
-# Generate wg0.conf
+# Generate wg1.conf
 /scripts/wg-gen.sh -l "$LOC" -t "$tokenfile" -o "$wg_conf" -k "/RegionsListPubKey.pem" -d "$VPNDNS"
 result=$?
 if [ "$result" -eq 2 ]; then
@@ -144,11 +144,11 @@ fi
 [ $KEEPALIVE -gt 0 ] && echo "PersistentKeepalive = $KEEPALIVE" >> "$wg_conf"
 
 # Bring up Wireguard interface
-echo "$(date): Bringing up WireGuard interface wg0"
+echo "$(date): Bringing up WireGuard interface wg1"
 if [ $WG_USERSPACE -eq 1 ]; then
-  WG_QUICK_USERSPACE_IMPLEMENTATION=wireguard-go wg-quick up wg0 || fatal_error
+  WG_QUICK_USERSPACE_IMPLEMENTATION=wireguard-go wg-quick up wg1 || fatal_error
 else
-  wg-quick up wg0 || fatal_error
+  wg-quick up wg1 || fatal_error
 fi
 
 # Print out wg interface info
@@ -158,9 +158,9 @@ echo
 
 echo "$(date): WireGuard successfully started"
 
-# Add qdisc to wg0 if requested
+# Add qdisc to wg1 if requested
 # eg: QDISC=cake bandwidth 20Mbit
-[ -n "$QDISC" ] && echo "$(date): Adding qdisc to wg0: $QDISC" && tc qdisc add root dev wg0 $QDISC && tc -statistics qdisc show dev wg0
+[ -n "$QDISC" ] && echo "$(date): Adding qdisc to wg1: $QDISC" && tc qdisc add root dev wg1 $QDISC && tc -statistics qdisc show dev wg1
 
 if [ $FIREWALL -eq 1 ]; then
   iptables -F OUTPUT
@@ -181,8 +181,8 @@ if [ $FIREWALL -eq 1 ]; then
   done
 
   # Allow WG stuff
-  iptables -A OUTPUT -o wg0 -j ACCEPT
-  iptables -I OUTPUT -m mark --mark "$(wg show wg0 fwmark)" -j ACCEPT
+  iptables -A OUTPUT -o wg1 -j ACCEPT
+  iptables -I OUTPUT -m mark --mark "$(wg show wg1 fwmark)" -j ACCEPT
 
   echo "$(date): Firewall enabled: Blocking non-WireGuard traffic"
 fi
@@ -204,9 +204,9 @@ fi
 # Nat+forward traffic from a specific interface if requested
 # eg. FWD_IFACE=eth1
 if [ -n "$FWD_IFACE" ]; then
-  iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE
-  iptables -A FORWARD -i wg0 -o "$FWD_IFACE" -m state --state RELATED,ESTABLISHED -j ACCEPT
-  iptables -A FORWARD -i "$FWD_IFACE" -o wg0 -j ACCEPT
+  iptables -t nat -A POSTROUTING -o wg1 -j MASQUERADE
+  iptables -A FORWARD -i wg1 -o "$FWD_IFACE" -m state --state RELATED,ESTABLISHED -j ACCEPT
+  iptables -A FORWARD -i "$FWD_IFACE" -o wg1 -j ACCEPT
   echo "$(date): Forwarding traffic from $FWD_IFACE to VPN"
 fi
 
@@ -217,9 +217,9 @@ if [ $PORT_FORWARDING -eq 1 ] && [ -n "$pf_api_ip" ]; then
   echo "$(date): Starting port forward script"
   # Try to use a persistent port if requested
   if [ $PORT_PERSIST -eq 1 ]; then
-    /scripts/pf.sh -t "$tokenfile" -i "$pf_api_ip" -n "$pf_cn" -p "$portfile" -c "$pia_cacrt" -s "/scripts/pf_success.sh" -r "$pf_persistfile" -f wg0 &
+    /scripts/pf.sh -t "$tokenfile" -i "$pf_api_ip" -n "$pf_cn" -p "$portfile" -c "$pia_cacrt" -s "/scripts/pf_success.sh" -r "$pf_persistfile" -f wg1 &
   else
-    /scripts/pf.sh -t "$tokenfile" -i "$pf_api_ip" -n "$pf_cn" -p "$portfile" -c "$pia_cacrt" -s "/scripts/pf_success.sh" -f wg0 &
+    /scripts/pf.sh -t "$tokenfile" -i "$pf_api_ip" -n "$pf_cn" -p "$portfile" -c "$pia_cacrt" -s "/scripts/pf_success.sh" -f wg1 &
   fi
 fi
 
@@ -233,7 +233,7 @@ if [ -n "$CYCLE_PORTS" ]; then
   echo "$(date): Changing Wireguard's local port every ${CYCLE_INTERVAL:-180}s"
   while true; do
     for port in $CYCLE_PORTS; do
-      wg set wg0 listen-port "$port"
+      wg set wg1 listen-port "$port"
       sleep "${CYCLE_INTERVAL:-180}" & wait $!
     done
   done

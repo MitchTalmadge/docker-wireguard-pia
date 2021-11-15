@@ -8,7 +8,7 @@
 # Options:
 #  -t </path/to/tokenfile>      Path to a valid PIA auth token
 #  -l <location>                id of the location to connect to (eg. "swiss")
-#  -o </path/to/wg0.conf        The generated .conf will be saved here
+#  -o </path/to/wg1.conf        The generated .conf will be saved here
 #  -k </path/to/pubkey.pem>     (Optional) Verify the server list using this public key. Requires OpenSSL.
 #  -d <dns server/s>            (Optional) Use these DNS servers in the generated WG config. Defaults to PIA's DNS.
 #  -a                           List available locations and whether they support port forwarding
@@ -50,7 +50,7 @@ usage() {
   echo "Options:"
   echo " -t </path/to/tokenfile>      Path to a valid PIA auth token"
   echo " -l <location>                id of the location to connect to (eg. \"swiss\")"
-  echo " -o </path/to/wg0.conf        The generated conf will be saved here"
+  echo " -o </path/to/wg1.conf        The generated conf will be saved here"
   echo " -k </path/to/pubkey.pem>     (Optional) Verify the server list using this public key. Requires OpenSSL."
   echo " -d <dns server/s>            (Optional) Use these DNS servers in the generated WG config. Defaults to PIA's DNS."
   echo " -a                           List available locations and whether they support port forwarding"

@@ -18,7 +18,7 @@
 # Examples:
 #   pf.sh -t ~/.pia-token
 #   pf.sh -t ~/.pia-token -n sydney402
-#   pf.sh -t ~/.pia-token -i 10.13.14.1 -n london416 -p /port.dat -f wg0
+#   pf.sh -t ~/.pia-token -i 10.13.14.1 -n london416 -p /port.dat -f wg1
 #
 # For port forwarding on the next-gen network, we need a valid PIA auth token (see pia-auth.sh) and to know the address to send API requests to.
 #
